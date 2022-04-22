@@ -399,7 +399,6 @@ class MeetingStore extends ChangeNotifier
   void onUpdateSpeakers({required List<HMSSpeaker> updateSpeakers}) {
     if (updateSpeakers.isEmpty) {
       activeSpeakerIds.clear();
-      return;
     } else {
       updateSpeakers.forEach((speaker) {
         activeSpeakerIds.add(speaker.peer.peerId + "mainVideo");

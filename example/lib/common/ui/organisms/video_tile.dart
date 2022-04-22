@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 // Project imports
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
+import 'package:hmssdk_flutter_example/common/ui/organisms/active_speaker.dart';
 import 'package:hmssdk_flutter_example/common/ui/organisms/brb_tag.dart';
 import 'package:hmssdk_flutter_example/common/ui/organisms/change_track_options.dart';
 import 'package:hmssdk_flutter_example/common/ui/organisms/degrade_tile.dart';
@@ -128,13 +129,11 @@ class _VideoTileState extends State<VideoTile> {
                     BRBTag(), //top right
                     NetworkIconWidget(), //top left
                     AudioMuteStatus(), //bottom center
-                    Container(
-                      height: widget.itemHeight + 110,
-                      width: widget.itemWidth - 4,
-                      decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey, width: 1.0),
-                          borderRadius: BorderRadius.all(Radius.circular(10))),
-                    )
+                    ActiveSpeaker(
+                      itemHeight: widget.itemHeight + 110,
+                      itemWidth: widget.itemWidth - 4,
+                      uid: context.read<PeerTrackNode>().uid,
+                    ),
                   ],
                 ),
               ),
