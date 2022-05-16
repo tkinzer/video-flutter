@@ -395,7 +395,7 @@ class MeetingStore extends ChangeNotifier
   }
 
   @override
-  void onError({required HMSException error}) {
+  void onHMSError({required HMSException error}) {
     this.hmsException = hmsException;
     notifyListeners();
   }

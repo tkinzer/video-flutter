@@ -35,7 +35,7 @@ class PreviewStore extends ChangeNotifier
 
 
   @override
-  void onError({required HMSException error}) {
+  void onHMSError({required HMSException error}) {
     updateError(error);
   }
 
