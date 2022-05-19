@@ -62,6 +62,7 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
     lateinit var hmssdk: HMSSDK
     private lateinit var hmsVideoFactory: HMSVideoViewFactory
     private var requestChange: HMSRoleChangeRequest? = null
+    private var statsCount = 0
 
     companion object {
         var hmssdkFlutterPlugin: HmssdkFlutterPlugin? = null
@@ -166,11 +167,19 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             "get_all_tracks" -> {
                 getAllTracks(call, result)
             }
+            "increment_stats_count" ->{
+                incrementStatsCount()
+            }
+            "decrement_stats_count" ->{
+                decrementStatsCount()
+            }
             else -> {
                 result.notImplemented()
             }
         }
     }
+
+
 
     // MARK: Build Actions
     private fun buildActions(call: MethodCall, result: Result) {
@@ -362,6 +371,7 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
     private fun leave(result: Result) {
         hmssdk.leave(hmsActionResultListener = HMSCommonAction.getActionListener(result))
+        statsCount = 0
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink?) {
@@ -784,6 +794,7 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
 
         override fun onRemovedFromRoom(notification: HMSRemovedFromRoom) {
+            statsCount = 0
             val args = HashMap<String, Any?>()
             args.put("event_name", "on_removed_from_room")
             args.put("data", HMSRemovedFromRoomExtension.toDictionary(notification))
@@ -991,6 +1002,8 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             track: HMSTrack?,
             peer: HMSPeer?
         ) {
+            if(statsCount <= 0)
+                return
 
             val args = HashMap<String, Any?>()
             args.put("event_name", "on_remote_video_stats")
@@ -1008,6 +1021,8 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             peer: HMSPeer?
         ) {
 
+            if(statsCount <= 0)
+                return
             val args = HashMap<String, Any?>()
             args.put("event_name", "on_remote_audio_stats")
             args.put("data", HMSRtcStatsExtension.toDictionary(hmsRemoteAudioStats = hmsRemoteAudioStats, peer = peer, track = track))
@@ -1025,6 +1040,8 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             peer: HMSPeer?
         ) {
 
+            if(statsCount <= 0)
+                return
             val args = HashMap<String, Any?>()
             args.put("event_name", "on_local_video_stats")
             args.put("data", HMSRtcStatsExtension.toDictionary(hmsLocalVideoStats = hmsLocalVideoStats, peer = getLocalPeer(), track = track))
@@ -1044,6 +1061,8 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
             peer: HMSPeer?
         ) {
 
+            if(statsCount <= 0)
+                return
             val args = HashMap<String, Any?>()
             args.put("event_name", "on_local_audio_stats")
             args.put("data", HMSRtcStatsExtension.toDictionary(hmsLocalAudioStats = hmsLocalAudioStats, peer = getLocalPeer(), track = track))
@@ -1056,6 +1075,9 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
         }
 
         override fun onRTCStats(hmsRTCStats: HMSRTCStatsReport) {
+
+            if(statsCount <= 0)
+                return
 
             val args = HashMap<String, Any?>()
             args.put("event_name", "on_rtc_stats")
@@ -1076,6 +1098,14 @@ class HmssdkFlutterPlugin : FlutterPlugin, MethodCallHandler, ActivityAware,
 
         }
 
+    }
+
+    private fun incrementStatsCount(){
+        statsCount++
+    }
+
+    private fun decrementStatsCount(){
+        statsCount--
     }
 
     }

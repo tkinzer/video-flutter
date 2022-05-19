@@ -76,16 +76,30 @@ class PlatformService {
   ///add RTCStats Listener
   static void addRTCStatsListener(HMSStatsListener listener) {
     statsListeners.add(listener);
+    incrementStatsCount();
   }
 
   ///remove meetingListener just pass the listener instance you want to remove.
   static void removeRTCStatsListener(HMSStatsListener listener) {
-    if (statsListeners.contains(listener)) statsListeners.remove(listener);
+    if (statsListeners.contains(listener)) {
+      statsListeners.remove(listener);
+      decrementStatsCount();
+    }
   }
 
   static void startRtcStats() {
     _channel.invokeMethod(
         PlatformMethodValues.getName(PlatformMethod.startRtcStats));
+  }
+
+  static void incrementStatsCount() {
+    _channel.invokeMethod(
+        PlatformMethodValues.getName(PlatformMethod.incrementStatsCount));
+  }
+
+  static void decrementStatsCount() {
+    _channel.invokeMethod(
+        PlatformMethodValues.getName(PlatformMethod.decrementStatsCount));
   }
 
   static void addLogsListener(
