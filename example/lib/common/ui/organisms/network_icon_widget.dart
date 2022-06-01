@@ -1,6 +1,10 @@
+//Package imports
 import 'package:flutter/material.dart';
-import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+
+//Project imports
+import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
 
 class NetworkIconWidget extends StatelessWidget {
   @override
@@ -11,9 +15,8 @@ class NetworkIconWidget extends StatelessWidget {
               ? Positioned(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(5, 5, 0, 0),
-                    child: Image.asset(
-                      'assets/icons/network_$networkQuality.png',
-                      scale: 2,
+                    child: SvgPicture.asset(
+                      'assets/icons/network_$networkQuality.svg',
                     ),
                   ),
                   top: 5.0,

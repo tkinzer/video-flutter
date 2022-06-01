@@ -1,10 +1,13 @@
+//Package imports
 import 'package:flutter/material.dart';
-import 'package:hmssdk_flutter/hmssdk_flutter.dart';
-import 'package:hmssdk_flutter_example/common/util/utility_function.dart';
-import 'package:hmssdk_flutter_example/meeting/meeting_store.dart';
-import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
+import 'package:hmssdk_flutter_example/common/ui/organisms/audio_level_avatar.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
+
+//Project imports
+import 'package:hmssdk_flutter/hmssdk_flutter.dart';
+import 'package:hmssdk_flutter_example/meeting/meeting_store.dart';
+import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
 
 class VideoView extends StatefulWidget {
   final matchParent;
@@ -14,7 +17,7 @@ class VideoView extends StatefulWidget {
   final double itemHeight;
   final ScaleType scaleType;
   final double itemWidth;
-
+  final String uid;
   VideoView(
       {Key? key,
       this.viewSize,
@@ -22,6 +25,7 @@ class VideoView extends StatefulWidget {
       this.matchParent = true,
       this.itemHeight = 200,
       this.itemWidth = 200,
+      required this.uid,
       this.scaleType = ScaleType.SCALE_ASPECT_FILL})
       : super(key: key);
 
@@ -35,17 +39,7 @@ class _VideoViewState extends State<VideoView> {
     return Selector<PeerTrackNode, Tuple3<HMSVideoTrack?, bool, bool>>(
         builder: (_, data, __) {
           if ((data.item1 == null) || data.item2 || data.item3) {
-            return Container(
-                child: Center(
-                    child: CircleAvatar(
-                        backgroundColor: Utilities.getBackgroundColour(
-                            context.read<PeerTrackNode>().peer.name),
-                        radius: 36,
-                        child: Text(
-                          Utilities.getAvatarTitle(
-                              context.read<PeerTrackNode>().peer.name),
-                          style: TextStyle(fontSize: 36, color: Colors.white),
-                        ))));
+            return AudioLevelAvatar();
           } else {
             return (data.item1?.source != "REGULAR")
                 ? ClipRRect(
@@ -54,7 +48,6 @@ class _VideoViewState extends State<VideoView> {
                       child: HMSVideoView(
                           scaleType: widget.scaleType,
                           track: data.item1!,
-                          peerName: context.read<PeerTrackNode>().peer.name,
                           setMirror: false,
                           matchParent: false),
                     ),
@@ -69,7 +62,6 @@ class _VideoViewState extends State<VideoView> {
                       child: HMSVideoView(
                         scaleType: ScaleType.SCALE_ASPECT_FILL,
                         track: data.item1!,
-                        peerName: context.read<PeerTrackNode>().peer.name,
                         setMirror: data.item1.runtimeType == HMSLocalVideoTrack
                             ? context.read<MeetingStore>().isMirror
                             : false,

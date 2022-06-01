@@ -1,6 +1,10 @@
+//Package imports
 import 'package:flutter/material.dart';
-import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+
+//Project imports
+import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
 
 class BRBTag extends StatelessWidget {
   @override
@@ -11,13 +15,10 @@ class BRBTag extends StatelessWidget {
               ? Positioned(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(5, 0, 5, 0),
-                    child: Container(
-                      decoration: BoxDecoration(
-                          border: Border.all(width: 1, color: Colors.red)),
-                      child: Text(
-                        "BRB",
-                        style: TextStyle(color: Colors.red),
-                      ),
+                    child: SvgPicture.asset(
+                      "assets/icons/brb.svg",
+                      color: Colors.red,
+                      width: 35,
                     ),
                   ),
                   top: 10.0,

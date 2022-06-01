@@ -1,7 +1,12 @@
+//Package imports
 import 'package:flutter/material.dart';
-import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hmssdk_flutter_example/common/util/app_color.dart';
 import 'package:provider/provider.dart';
 import 'package:tuple/tuple.dart';
+
+//Project imports
+import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
 
 class PeerName extends StatefulWidget {
   @override
@@ -24,10 +29,12 @@ class _PeerNameState extends State<PeerName> {
               child: Text(
                 "${data.item3 ? "You (" : ""}${data.item1}${data.item3 ? ")" : ""} ${data.item2 ? " Degraded" : ""}",
                 maxLines: 1,
+                softWrap: true,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
+                style: GoogleFonts.inter(
                     fontWeight: FontWeight.w500,
-                    color: Colors.white,
+                                    color:iconColor,
+
                     fontSize: 16),
               ),
             ),

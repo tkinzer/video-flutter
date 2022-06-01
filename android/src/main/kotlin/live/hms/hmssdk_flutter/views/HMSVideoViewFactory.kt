@@ -14,25 +14,23 @@ import live.hms.video.utils.HmsUtilities
 
 
 class HMSVideoViewWidget(context: Context, id: Int, creationParams: Map<String?, Any?>?, private val track: HMSVideoTrack, private val setMirror:Boolean,
-                         private val scaleType : Int?,private val matchParent: Boolean? = true, peerName: String
+                         private val scaleType : Int?,private val matchParent: Boolean? = true
 ) : PlatformView {
 
     private val viewContext: Context = context
-    private  val myPeerName: String = peerName
+    private val myTrack: HMSVideoTrack = track
 
     private var hmsVideoView: HMSVideoView? = null
 
-    override fun getView(): View {
+    override fun getView(): View {        
         if (hmsVideoView == null) {
-            hmsVideoView = HMSVideoView(viewContext, setMirror, scaleType, myPeerName)
+            hmsVideoView = HMSVideoView(viewContext, setMirror, scaleType, myTrack)
         }
-        Log.i("debugVideo", "HMSVideoViewWidget getView peerName: $myPeerName")
         return hmsVideoView!!
     }
 
     override fun onFlutterViewAttached(flutterView: View) {
         super.onFlutterViewAttached(flutterView)
-
         var frameLayoutParams = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.MATCH_PARENT,
             FrameLayout.LayoutParams.MATCH_PARENT
@@ -44,20 +42,13 @@ class HMSVideoViewWidget(context: Context, id: Int, creationParams: Map<String?,
             )
         }
         view.layoutParams = frameLayoutParams
-        Log.i("debugVideo", "HMSVideoViewWidget onFlutterViewAttached peerName: $myPeerName")
-
-        hmsVideoView!!.setVideoTrack(track)
     }
 
     override fun onFlutterViewDetached() {
         super.onFlutterViewDetached()
-        Log.i("debugVideo", "HMSVideoViewWidget onFlutterViewDetached peerName: $myPeerName")
-        hmsVideoView!!.removeVideoTrack(track)
     }
 
     override fun dispose() {
-        Log.i("debugVideo", "HMSVideoViewWidget dispose peerName: $myPeerName")
-        hmsVideoView!!.removeVideoTrack(track)
         hmsVideoView = null
     }
 }
@@ -82,10 +73,6 @@ class HMSVideoViewFactory(private val plugin: HmssdkFlutterPlugin) :
 
         val track = HmsUtilities.getVideoTrack(trackId!!, room!!)
 
-        val peerName = args!!["peerName"] as? String
-
-        Log.i("debugVideo", "HMSVideoViewFactory create peerName: $peerName")
-
-        return HMSVideoViewWidget(requireNotNull(context), viewId, creationParams, track!!, setMirror!!, scaleType, matchParent, peerName!!)
+        return HMSVideoViewWidget(requireNotNull(context), viewId, creationParams, track!!, setMirror!!, scaleType, matchParent)
     }
 }

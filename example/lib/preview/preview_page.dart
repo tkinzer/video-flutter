@@ -3,7 +3,10 @@
 import 'package:connectivity_checker/connectivity_checker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
+import 'package:hmssdk_flutter_example/common/util/app_color.dart';
 import 'package:hmssdk_flutter_example/common/util/utility_function.dart';
 import 'package:provider/provider.dart';
 
@@ -51,7 +54,7 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
         .read<PreviewStore>()
         .startPreview(user: widget.user, roomId: widget.roomId);
     if (ans == false) {
-      UtilityComponents.showSnackBarWithString("Unable to preview", context);
+      UtilityComponents.showToastWithString("Unable to preview");
       Navigator.of(context).pop();
     }
   }
@@ -95,7 +98,6 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                             ? HMSVideoView(
                                 scaleType: ScaleType.SCALE_ASPECT_FILL,
                                 track: _previewStore.localTracks[0],
-                                peerName: _previewStore.peer!.name,
                                 setMirror: widget.mirror,
                                 matchParent: false,
                               )
@@ -104,18 +106,16 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                 width: itemWidth,
                                 child: Center(
                                     child: CircleAvatar(
-                                        backgroundColor: Utilities.colors[
-                                            _previewStore.peer!.name
-                                                    .toLowerCase()
-                                                    .codeUnitAt(0) %
-                                                Utilities.colors.length],
+                                        backgroundColor:
+                                            Utilities.getBackgroundColour(
+                                                _previewStore.peer!.name),
                                         radius: 36,
                                         child: Text(
                                           Utilities.getAvatarTitle(
                                               _previewStore.peer!.name),
-                                          style: TextStyle(
+                                          style: GoogleFonts.inter(
                                               fontSize: 36,
-                                              color: Colors.white),
+                                              color:Colors.white,),
                                         ))),
                               ),
                       ),
@@ -125,9 +125,8 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                     padding: const EdgeInsets.only(top: 40, left: 20),
                     child: Align(
                       alignment: Alignment.topLeft,
-                      child: Image.asset(
-                        'assets/icons/network_${_previewStore.networkQuality}.png',
-                        scale: 2,
+                      child: SvgPicture.asset(
+                        'assets/icons/network_${_previewStore.networkQuality}.svg',
                       ),
                     ),
                   ),
@@ -144,100 +143,107 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                 width: 35,
                                 decoration: BoxDecoration(
                                     color: Colors.transparent.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(5)),
-                                child: Icon(
-                                  Icons.circle,
+                                    borderRadius: BorderRadius.only(
+                                        topLeft: Radius.circular(5),
+                                        bottomRight: Radius.circular(5))),
+                                child: SvgPicture.asset(
+                                  "assets/icons/record.svg",
                                   color: Colors.red,
-                                  size: 24,
                                 ),
                               ),
-                            if (_previewStore.peers.isNotEmpty)
+                            if (_previewStore.peerCount != 0)
                               GestureDetector(
                                   onTap: () {
-                                    showModalBottomSheet<void>(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(10.0),
-                                      ),
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return Container(
-                                            height: MediaQuery.of(context)
-                                                    .size
-                                                    .height /
-                                                2,
-                                            padding: EdgeInsets.only(top: 15),
-                                            child: ListView.separated(
-                                                itemBuilder: (context, index) {
-                                                  HMSPeer peer = _previewStore
-                                                      .peers[index];
-                                                  return Container(
-                                                    padding: EdgeInsets.all(15),
-                                                    margin:
-                                                        EdgeInsets.symmetric(
-                                                            horizontal: 10),
-                                                    decoration: BoxDecoration(
-                                                        color: Color.fromARGB(
-                                                            174, 0, 0, 0),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(8)),
-                                                    child: Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .spaceBetween,
-                                                      children: [
-                                                        Text(
-                                                          peer.name,
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .bold,
-                                                              color:
-                                                                  Colors.white),
-                                                        ),
-                                                        Text(peer.role.name,
-                                                            style: TextStyle(
+                                    if (_previewStore.peers.isNotEmpty)
+                                      showModalBottomSheet<void>(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10.0),
+                                        ),
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return Container(
+                                              height: MediaQuery.of(context)
+                                                      .size
+                                                      .height /
+                                                  2,
+                                              padding: EdgeInsets.only(top: 15),
+                                              child: ListView.separated(
+                                                  itemBuilder:
+                                                      (context, index) {
+                                                    HMSPeer peer = _previewStore
+                                                        .peers[index];
+                                                    return Container(
+                                                      padding:
+                                                          EdgeInsets.all(15),
+                                                      margin:
+                                                          EdgeInsets.symmetric(
+                                                              horizontal: 10),
+                                                      decoration: BoxDecoration(
+                                                          color: Color.fromARGB(
+                                                              174, 0, 0, 0),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(8)),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            peer.name,
+                                                            style: GoogleFonts.inter(
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold,
-                                                                color: Colors
-                                                                    .white))
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                                separatorBuilder:
-                                                    (context, index) {
-                                                  return Divider();
-                                                },
-                                                itemCount: _previewStore
-                                                    .peers.length));
-                                      },
-                                    );
+                                                                color:Colors.white,),
+                                                          ),
+                                                          Text(peer.role.name,
+                                                              style: GoogleFonts.inter(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                  color:Colors.white,))
+                                                        ],
+                                                      ),
+                                                    );
+                                                  },
+                                                  separatorBuilder:
+                                                      (context, index) {
+                                                    return Divider();
+                                                  },
+                                                  itemCount: _previewStore
+                                                      .peers.length));
+                                        },
+                                      );
                                   },
                                   child: Container(
                                       padding: EdgeInsets.all(5),
                                       decoration: BoxDecoration(
                                           color: Colors.transparent
                                               .withOpacity(0.2),
-                                          borderRadius:
-                                              BorderRadius.circular(5)),
+                                          borderRadius: _previewStore
+                                                  .isRecordingStarted
+                                              ? BorderRadius.only(
+                                                  topRight: Radius.circular(5),
+                                                  bottomRight:
+                                                      Radius.circular(5))
+                                              : BorderRadius.circular(5)),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
-                                          Icon(
-                                            Icons.person,
-                                            size: 24,
+                                          SvgPicture.asset(
+                                            "assets/icons/participants.svg",
+                                            color:iconColor,
                                           ),
                                           SizedBox(
                                             width: 2,
                                           ),
                                           Text(
-                                            _previewStore.peers.length
-                                                .toString(),
-                                            style: TextStyle(
+                                            _previewStore.peerCount.toString(),
+                                            style: GoogleFonts.inter(
+                                              color:iconColor,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16),
                                           )
@@ -270,11 +276,15 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                   radius: 25,
                                   backgroundColor:
                                       Colors.transparent.withOpacity(0.2),
-                                  child: Icon(
-                                      _previewStore.isVideoOn
-                                          ? Icons.videocam
-                                          : Icons.videocam_off,
-                                      color: Colors.blue),
+                                  child: (_previewStore.isVideoOn)
+                                      ? SvgPicture.asset(
+                                          "assets/icons/cam_state_on.svg",
+                                          color: Colors.blue,
+                                        )
+                                      : SvgPicture.asset(
+                                          "assets/icons/cam_state_off.svg",
+                                          color: Colors.blue,
+                                        ),
                                 ),
                               )
                             : Container(),
@@ -314,7 +324,8 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                     },
                                     child: Text(
                                       'Join HLS ',
-                                      style: TextStyle(height: 1, fontSize: 18),
+                                      style: GoogleFonts.inter(
+                                          height: 1, fontSize: 18),
                                     ),
                                   )
                                 : ElevatedButton(
@@ -353,7 +364,8 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                     },
                                     child: Text(
                                       'Join Now',
-                                      style: TextStyle(height: 1, fontSize: 18),
+                                      style: GoogleFonts.inter(
+                                          height: 1, fontSize: 18),
                                     ),
                                   )
                             : Container(),
@@ -373,12 +385,15 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                   radius: 25,
                                   backgroundColor:
                                       Colors.transparent.withOpacity(0.2),
-                                  child: Icon(
-                                    (_previewStore.isAudioOn)
-                                        ? Icons.mic
-                                        : Icons.mic_off,
-                                    color: Colors.blue,
-                                  ),
+                                  child: (_previewStore.isAudioOn)
+                                      ? SvgPicture.asset(
+                                          "assets/icons/mic_state_on.svg",
+                                          color: Colors.blue,
+                                        )
+                                      : SvgPicture.asset(
+                                          "assets/icons/mic_state_off.svg",
+                                          color: Colors.blue,
+                                        ),
                                 ),
                               )
                             : Container(),

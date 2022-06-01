@@ -1,5 +1,7 @@
 //Package imports
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:hmssdk_flutter_example/common/util/app_color.dart';
 
 class ChangeTrackOptionDialog extends StatefulWidget {
   final String peerName;
@@ -31,7 +33,11 @@ class _ChangeTrackOptionDialogState extends State<ChangeTrackOptionDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Text(widget.peerName),
+      title: Text(
+        
+        widget.peerName,
+        style: GoogleFonts.inter(color:iconColor),
+      ),
       content: Container(
         width: double.infinity,
         child: Column(
@@ -53,7 +59,10 @@ class _ChangeTrackOptionDialogState extends State<ChangeTrackOptionDialog> {
                       SizedBox(
                         width: 16,
                       ),
-                      Text("${widget.isVideoMuted ? "Unmute" : "Mute"} video")
+                      Text(
+                        "${widget.isVideoMuted ? "Unmute" : "Mute"} video",
+                        style: GoogleFonts.inter(color:iconColor),
+                      )
                     ],
                   ),
                 ),
@@ -77,7 +86,10 @@ class _ChangeTrackOptionDialogState extends State<ChangeTrackOptionDialog> {
                       SizedBox(
                         width: 16,
                       ),
-                      Text("${widget.isAudioMuted ? "Unmute" : "Mute"} audio")
+                      Text(
+                        "${widget.isAudioMuted ? "Unmute" : "Mute"} audio",
+                        style: GoogleFonts.inter(color:iconColor),
+                      ),
                     ],
                   ),
                 ),
@@ -98,7 +110,10 @@ class _ChangeTrackOptionDialogState extends State<ChangeTrackOptionDialog> {
                       SizedBox(
                         width: 16,
                       ),
-                      Text("Remove Peer")
+                      Text(
+                        "Remove Peer",
+                        style: GoogleFonts.inter(color:iconColor),
+                      )
                     ],
                   ),
                 ),
