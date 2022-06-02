@@ -29,7 +29,6 @@ import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
 
 // ignore: implementation_imports
 import 'package:tuple/tuple.dart';
-import 'meeting_participants_list.dart';
 
 class MeetingPage extends StatefulWidget {
   final String roomId;
@@ -60,6 +59,7 @@ class _MeetingPageState extends State<MeetingPage>
   bool isRecordingStarted = false;
   bool isBRB = false;
   final scrollController = DraggableScrollableController();
+  late AnimationController animationController;
 
   @override
   void initState() {
@@ -68,6 +68,7 @@ class _MeetingPageState extends State<MeetingPage>
     initMeeting();
     checkAudioState();
     setInitValues();
+    initAnimation();
   }
 
   void initMeeting() async {
@@ -89,8 +90,17 @@ class _MeetingPageState extends State<MeetingPage>
     context.read<MeetingStore>().setSettings();
   }
 
+  void initAnimation() {
+    animationController = AnimationController(
+      vsync: this,
+      duration: new Duration(milliseconds: 5000),
+    );
+    animationController.repeat();
+  }
+
   @override
   void dispose() {
+    animationController.dispose();
     super.dispose();
   }
 
@@ -98,15 +108,48 @@ class _MeetingPageState extends State<MeetingPage>
     final _meetingStore = context.read<MeetingStore>();
     switch (value) {
       case 1:
-        // StaticLogger.logger?.d(
-        //     "\n----------------------------Sending Logs-----------------\n");
-        // StaticLogger.logger?.close();
-        // ShareExtend.share(CustomLogger.file?.path ?? '', 'file');
-        // logger.getCustomLogger();
-        UtilityComponents.showToastWithString("Coming Soon...");
+        _meetingStore.setActiveSpeakerMode();
         break;
-
       case 2:
+        if (_meetingStore.meetingMode != MeetingMode.Audio) {
+          _meetingStore.setMode(MeetingMode.Audio);
+        } else {
+          _meetingStore.setPlayBackAllowed(true);
+          _meetingStore.setMode(MeetingMode.Video);
+        }
+        break;
+      case 3:
+        if (_meetingStore.meetingMode != MeetingMode.Hero) {
+          _meetingStore.setMode(MeetingMode.Hero);
+        } else {
+          _meetingStore.setMode(MeetingMode.Video);
+        }
+        break;
+      case 4:
+        if (_meetingStore.meetingMode != MeetingMode.Single) {
+          _meetingStore.setMode(MeetingMode.Single);
+        } else {
+          _meetingStore.setMode(MeetingMode.Video);
+        }
+        break;
+      case 5:
+        _meetingStore.toggleScreenShare();
+        break;
+      case 6:
+        if (_meetingStore.isVideoOn) _meetingStore.switchCamera();
+        break;
+      case 7:
+        String name = await UtilityComponents.showInputDialog(
+            context: context, placeholder: "Enter Name");
+        if (name.isNotEmpty) {
+          _meetingStore.changeName(name: name);
+        }
+        break;
+      case 8:
+        List<HMSRole> roles = await _meetingStore.getRoles();
+        UtilityComponents.showRoleList(context, roles, _meetingStore);
+        break;
+      case 9:
         if (_meetingStore.isRecordingStarted) {
           _meetingStore.stopRtmpAndRecording();
           isRecordingStarted = false;
@@ -131,51 +174,6 @@ class _MeetingPageState extends State<MeetingPage>
           }
         }
         break;
-
-      case 3:
-        if (_meetingStore.isVideoOn) _meetingStore.switchCamera();
-
-        break;
-      case 4:
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => ChangeNotifierProvider.value(
-                value: context.read<MeetingStore>(), child: ParticipantsList()),
-          ),
-        );
-        break;
-      case 5:
-        if (_meetingStore.meetingMode != MeetingMode.Audio) {
-          _meetingStore.setMode(MeetingMode.Audio);
-        } else {
-          _meetingStore.setPlayBackAllowed(true);
-          _meetingStore.setMode(MeetingMode.Video);
-        }
-        break;
-      case 6:
-        _meetingStore.setActiveSpeakerMode();
-        break;
-      case 7:
-        if (_meetingStore.meetingMode != MeetingMode.Hero) {
-          _meetingStore.setMode(MeetingMode.Hero);
-        } else {
-          _meetingStore.setMode(MeetingMode.Video);
-        }
-        break;
-      case 8:
-        if (_meetingStore.meetingMode != MeetingMode.Single) {
-          _meetingStore.setMode(MeetingMode.Single);
-        } else {
-          _meetingStore.setMode(MeetingMode.Video);
-        }
-        break;
-      case 9:
-        String name = await UtilityComponents.showInputDialog(
-            context: context, placeholder: "Enter Name");
-        if (name.isNotEmpty) {
-          _meetingStore.changeName(name: name);
-        }
-        break;
       case 10:
         if (_meetingStore.hasHlsStarted) {
           _meetingStore.stopHLSStreaming();
@@ -189,24 +187,12 @@ class _MeetingPageState extends State<MeetingPage>
           }
         }
         break;
-
       case 11:
-        List<HMSRole> roles = await _meetingStore.getRoles();
-        UtilityComponents.showRoleList(context, roles, _meetingStore);
-        break;
-      case 12:
         _meetingStore.changeStatsVisible();
         break;
-      case 13:
-        _meetingStore.toggleScreenShare();
+      case 12:
+        UtilityComponents.onEndRoomPressed(context);
         break;
-      case 14:
-        _meetingStore.endRoom(false, "Room Ended From Flutter");
-        if (_meetingStore.isRoomEnded) {
-          Navigator.pop(context);
-        }
-        break;
-
       default:
         break;
     }
@@ -243,9 +229,9 @@ class _MeetingPageState extends State<MeetingPage>
                             builder: (_, isRecordingStarted, __) {
                               return isRecordingStarted
                                   ? SvgPicture.asset(
-                                        "assets/icons/record.svg",
-                                        color: Colors.red,
-                                      )
+                                      "assets/icons/record.svg",
+                                      color: Colors.red,
+                                    )
                                   : Container();
                             },
                           ),
@@ -321,12 +307,17 @@ class _MeetingPageState extends State<MeetingPage>
                                                         child: Text(
                                                           "Waiting for HLS to start...",
                                                           style:
-                                                              GoogleFonts.inter(color:iconColor,
+                                                              GoogleFonts.inter(
+                                                                  color:
+                                                                      iconColor,
                                                                   fontSize: 20),
                                                         ),
                                                       ),
-                                                      CircularProgressIndicator(
-                                                        strokeWidth: 1,
+                                                      RotationTransition(
+                                                        child: Image.asset(
+                                                            "assets/icons/hms_icon_loading.png"),
+                                                        turns:
+                                                            animationController,
                                                       )
                                                     ],
                                                   ),
@@ -335,9 +326,10 @@ class _MeetingPageState extends State<MeetingPage>
                                   }
                                   if (data.item3 == 0) {
                                     return Center(
-                                        child: Text(
-                                      'Waiting for others to join!',
-                                      style: GoogleFonts.inter(color:iconColor,),
+                                        child: RotationTransition(
+                                      child: Image.asset(
+                                          "assets/icons/hms_icon_loading.png"),
+                                      turns: animationController,
                                     ));
                                   }
                                   Size size = MediaQuery.of(context).size;
@@ -452,9 +444,14 @@ class _MeetingPageState extends State<MeetingPage>
                                 context.read<MeetingStore>().switchVideo();
                               },
                         icon: data.item1
-                            ? SvgPicture.asset("assets/icons/cam_state_on.svg",color:iconColor,)
+                            ? SvgPicture.asset(
+                                "assets/icons/cam_state_on.svg",
+                                color: iconColor,
+                              )
                             : SvgPicture.asset(
-                                "assets/icons/cam_state_off.svg",color:iconColor,)));
+                                "assets/icons/cam_state_off.svg",
+                                color: data.item2 ? Colors.grey : iconColor,
+                              )));
               },
             ),
           if (Provider.of<MeetingStore>(context).localPeer != null &&
@@ -477,9 +474,14 @@ class _MeetingPageState extends State<MeetingPage>
                           context.read<MeetingStore>().switchAudio();
                         },
                         icon: isMicOn
-                            ? SvgPicture.asset("assets/icons/mic_state_on.svg",color:iconColor,)
+                            ? SvgPicture.asset(
+                                "assets/icons/mic_state_on.svg",
+                                color: iconColor,
+                              )
                             : SvgPicture.asset(
-                                "assets/icons/mic_state_off.svg",color:iconColor,)));
+                                "assets/icons/mic_state_off.svg",
+                                color: iconColor,
+                              )));
               },
             ),
           Selector<MeetingStore, bool>(
@@ -494,7 +496,7 @@ class _MeetingPageState extends State<MeetingPage>
                         context.read<MeetingStore>().changeMetadata();
                       },
                       icon: SvgPicture.asset(
-                        "assets/icons/hand_state_on.svg",
+                        "assets/icons/hand.svg",
                         color: raisedHand ? Colors.yellow : iconColor,
                       )));
             },
@@ -530,9 +532,13 @@ class _MeetingPageState extends State<MeetingPage>
                       },
                       icon: isNewMessageReceived
                           ? SvgPicture.asset(
-                              "assets/icons/message_badge_on.svg",color:iconColor,)
+                              "assets/icons/message_badge_on.svg",
+                              color: iconColor,
+                            )
                           : SvgPicture.asset(
-                              "assets/icons/message_badge_off.svg",color:iconColor,)),
+                              "assets/icons/message_badge_off.svg",
+                              color: iconColor,
+                            )),
                 );
               }),
           Container(
@@ -571,18 +577,12 @@ class _MeetingPageState extends State<MeetingPage>
                     onPressed: () {
                       context.read<MeetingStore>().changeMetadata();
                       UtilityComponents.showToastWithString(
-                          !raisedHand ? "Raised Hand ON" : "Raised Hand OFF"
-                          );
+                          !raisedHand ? "Raised Hand ON" : "Raised Hand OFF");
                     },
-                    icon: raisedHand
-                        ? SvgPicture.asset(
-                            'assets/icons/hand_state_on.svg',
-                            color: Colors.amber.shade300,
-                          )
-                        : SvgPicture.asset(
-                            'assets/icons/hand_state_off.svg',
-                            color:iconColor,
-                          ),
+                    icon: SvgPicture.asset(
+                      "assets/icons/hand.svg",
+                      color: raisedHand ? Colors.yellow : iconColor,
+                    ),
                   ));
             },
           ),
@@ -600,10 +600,13 @@ class _MeetingPageState extends State<MeetingPage>
                       },
                       icon: isNewMessageReceived
                           ? SvgPicture.asset(
-                              "assets/icons/message_badge_on.svg",color:iconColor,)
-
+                              "assets/icons/message_badge_on.svg",
+                              color: iconColor,
+                            )
                           : SvgPicture.asset(
-                              "assets/icons/message_badge_off.svg",color:iconColor,)),
+                              "assets/icons/message_badge_off.svg",
+                              color: iconColor,
+                            )),
                 );
               }),
           Container(
@@ -631,88 +634,19 @@ class _MeetingPageState extends State<MeetingPage>
       itemBuilder: (context) {
         final meetingStore = context.read<MeetingStore>();
         return [
-          PopupMenuItem(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Send Logs",
-                  style: GoogleFonts.inter(color:iconColor,),
-                ),
-                SvgPicture.asset("assets/icons/bug.svg",color:iconColor,),
-              ],
-            ),
-            value: 1,
-          ),
-          if (!(meetingStore.localPeer?.role.name.contains("hls-") ?? true))
-            PopupMenuItem(
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                        meetingStore.isRecordingStarted
-                            ? "Recording "
-                            : "Record",
-                        style: GoogleFonts.inter(
-                          color: meetingStore.isRecordingStarted
-                              ? Colors.blue
-                              : iconColor,
-                        )),
-                    SvgPicture.asset(
-                      "assets/icons/record.svg",
-                      color: meetingStore.isRecordingStarted
-                          ? Colors.red
-                          : iconColor,
-                    ),
-                  ]),
-              value: 2,
-            ),
-          if (!(meetingStore.localPeer?.role.name.contains("hls-") ?? true))
-            PopupMenuItem(
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Toggle Camera  ",
-                      style: GoogleFonts.inter(color:iconColor,),
-                    ),
-                    SvgPicture.asset("assets/icons/camera.svg",color:iconColor,),
-                  ]),
-              value: 3,
-            ),
-          PopupMenuItem(
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Participants  ",
-                    style: GoogleFonts.inter(color:iconColor,),
-                  ),
-                  SvgPicture.asset("assets/icons/participants.svg",color:iconColor,),
-                ]),
-            value: 4,
-          ),
-          PopupMenuItem(
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    meetingStore.meetingMode == MeetingMode.Audio
-                        ? "Video View"
-                        : "Audio View",
-                    style: GoogleFonts.inter(color:iconColor,),
-                  ),
-                  SvgPicture.asset(
-                    meetingStore.meetingMode == MeetingMode.Audio
-                        ? 'assets/icons/cam_state_on.svg'
-                        : 'assets/icons/mic_state_on.svg',
-                    color: iconColor,
-                    height: 24.0,
-                    width: 24.0,
-                  ),
-                ]),
-            value: 5,
-          ),
+          // PopupMenuItem(
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          //     children: [
+          //       Text(
+          //         "Send Logs",
+          //         style: GoogleFonts.inter(color:iconColor,),
+          //       ),
+          //       SvgPicture.asset("assets/icons/bug.svg",color:iconColor,),
+          //     ],
+          //   ),
+          //   value: 1,
+          // ),
           PopupMenuItem(
             child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -730,7 +664,30 @@ class _MeetingPageState extends State<MeetingPage>
                         : iconColor,
                   ),
                 ]),
-            value: 6,
+            value: 1,
+          ),
+          PopupMenuItem(
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    meetingStore.meetingMode == MeetingMode.Audio
+                        ? "Video View"
+                        : "Audio View",
+                    style: GoogleFonts.inter(
+                      color: iconColor,
+                    ),
+                  ),
+                  SvgPicture.asset(
+                    meetingStore.meetingMode == MeetingMode.Audio
+                        ? 'assets/icons/cam_state_on.svg'
+                        : 'assets/icons/mic_state_on.svg',
+                    color: iconColor,
+                    height: 24.0,
+                    width: 24.0,
+                  ),
+                ]),
+            value: 2,
           ),
           PopupMenuItem(
             child: Row(
@@ -749,7 +706,7 @@ class _MeetingPageState extends State<MeetingPage>
                         : iconColor,
                   ),
                 ]),
-            value: 7,
+            value: 3,
           ),
           PopupMenuItem(
             child: Row(
@@ -768,70 +725,7 @@ class _MeetingPageState extends State<MeetingPage>
                         : iconColor,
                   ),
                 ]),
-            value: 8,
-          ),
-          PopupMenuItem(
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Change Name",
-                    style: GoogleFonts.inter(color:iconColor,),
-                  ),
-                  SvgPicture.asset("assets/icons/pencil.svg",color:iconColor,),
-                ]),
-            value: 9,
-          ),
-          if (!(meetingStore.localPeer?.role.name.contains("hls-") ?? true))
-            PopupMenuItem(
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      meetingStore.hasHlsStarted ? "Stop HLS" : "Start HLS",
-                      style: GoogleFonts.inter(
-                        color: meetingStore.hasHlsStarted
-                            ? Colors.blue
-                            : iconColor,
-                      ),
-                    ),
-                    SvgPicture.asset("assets/icons/hls.svg",
-                        color: meetingStore.hasHlsStarted
-                            ? Colors.blue
-                            : iconColor),
-                  ]),
-              value: 10,
-            ),
-          if (meetingStore.localPeer?.role.permissions.changeRole ?? false)
-            PopupMenuItem(
-              child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Mute",
-                      style: GoogleFonts.inter(color:iconColor,),
-                    ),
-                    SvgPicture.asset("assets/icons/mic_state_off.svg",color:iconColor,),
-                  ]),
-              value: 11,
-            ),
-          PopupMenuItem(
-            child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Stats",
-                    style: GoogleFonts.inter(
-                        color: meetingStore.isStatsVisible
-                            ? Colors.blue
-                            : iconColor),
-                  ),
-                  SvgPicture.asset("assets/icons/stats.svg",
-                      color: meetingStore.isStatsVisible
-                          ? Colors.blue
-                          : iconColor),
-                ]),
-            value: 12,
+            value: 4,
           ),
           if ((meetingStore.localPeer != null) &&
               meetingStore.localPeer!.role.publishSettings!.allowed
@@ -855,8 +749,122 @@ class _MeetingPageState extends State<MeetingPage>
                           : iconColor,
                     ),
                   ]),
-              value: 13,
+              value: 5,
             ),
+          if (!(meetingStore.localPeer?.role.name.contains("hls-") ?? true))
+            PopupMenuItem(
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Toggle Camera  ",
+                      style: GoogleFonts.inter(
+                        color: iconColor,
+                      ),
+                    ),
+                    SvgPicture.asset(
+                      "assets/icons/camera.svg",
+                      color: iconColor,
+                    ),
+                  ]),
+              value: 6,
+            ),
+          PopupMenuItem(
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Change Name",
+                    style: GoogleFonts.inter(
+                      color: iconColor,
+                    ),
+                  ),
+                  SvgPicture.asset(
+                    "assets/icons/pencil.svg",
+                    color: iconColor,
+                  ),
+                ]),
+            value: 7,
+          ),
+          if (meetingStore.localPeer?.role.permissions.changeRole ?? false)
+            PopupMenuItem(
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Mute",
+                      style: GoogleFonts.inter(
+                        color: iconColor,
+                      ),
+                    ),
+                    SvgPicture.asset(
+                      "assets/icons/mic_state_off.svg",
+                      color: iconColor,
+                    ),
+                  ]),
+              value: 8,
+            ),
+          if (!(meetingStore.localPeer?.role.name.contains("hls-") ?? true))
+            PopupMenuItem(
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                        meetingStore.isRecordingStarted
+                            ? "Stop RTMP/Rec"
+                            : "Start RTMP/Rec",
+                        style: GoogleFonts.inter(
+                          color: meetingStore.isRecordingStarted
+                              ? Colors.blue
+                              : iconColor,
+                        )),
+                    SvgPicture.asset(
+                      "assets/icons/record.svg",
+                      color: meetingStore.isRecordingStarted
+                          ? Colors.red
+                          : iconColor,
+                    ),
+                  ]),
+              value: 9,
+            ),
+          if (!(meetingStore.localPeer?.role.name.contains("hls-") ?? true))
+            PopupMenuItem(
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      meetingStore.hasHlsStarted ? "Stop HLS" : "Start HLS",
+                      style: GoogleFonts.inter(
+                        color: meetingStore.hasHlsStarted
+                            ? Colors.blue
+                            : iconColor,
+                      ),
+                    ),
+                    SvgPicture.asset("assets/icons/hls.svg",
+                        color: meetingStore.hasHlsStarted
+                            ? Colors.blue
+                            : iconColor),
+                  ]),
+              value: 10,
+            ),
+          PopupMenuItem(
+            child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Stats",
+                    style: GoogleFonts.inter(
+                        color: meetingStore.isStatsVisible
+                            ? Colors.blue
+                            : iconColor),
+                  ),
+                  SvgPicture.asset("assets/icons/stats.svg",
+                      color: meetingStore.isStatsVisible
+                          ? Colors.blue
+                          : iconColor),
+                ]),
+            value: 11,
+          ),
           if (meetingStore.localPeer!.role.permissions.endRoom!)
             PopupMenuItem(
               child: Row(
@@ -864,11 +872,16 @@ class _MeetingPageState extends State<MeetingPage>
                   children: [
                     Text(
                       "End Room",
-                      style: GoogleFonts.inter(color:iconColor,),
+                      style: GoogleFonts.inter(
+                        color: iconColor,
+                      ),
                     ),
-                    SvgPicture.asset("assets/icons/end_room.svg",color:iconColor,),
+                    SvgPicture.asset(
+                      "assets/icons/end_room.svg",
+                      color: iconColor,
+                    ),
                   ]),
-              value: 14,
+              value: 12,
             ),
         ];
       },

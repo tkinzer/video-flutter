@@ -1,7 +1,6 @@
 //Package imports
 
 import 'package:connectivity_checker/connectivity_checker.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,13 +37,21 @@ class PreviewPage extends StatefulWidget {
   _PreviewPageState createState() => _PreviewPageState();
 }
 
-class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
+class _PreviewPageState extends State<PreviewPage>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
+  late AnimationController animationController;
+
   @override
   void initState() {
     WidgetsBinding.instance!.addObserver(this);
     MultiProvider(
       providers: [ChangeNotifierProvider(create: (_) => PreviewStore())],
     );
+    animationController = AnimationController(
+      vsync: this,
+      duration: new Duration(milliseconds: 5000),
+    );
+    animationController.repeat();
     super.initState();
     initPreview();
   }
@@ -61,6 +68,7 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    animationController.dispose();
     super.dispose();
   }
 
@@ -90,7 +98,11 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                           )
                         : Align(
                             alignment: Alignment.center,
-                            child: CupertinoActivityIndicator(radius: 50))
+                            child: RotationTransition(
+                              child: Image.asset(
+                                  "assets/icons/hms_icon_loading.png"),
+                              turns: animationController,
+                            ))
                     : Container(
                         height: itemHeight,
                         width: itemWidth,
@@ -114,8 +126,9 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                           Utilities.getAvatarTitle(
                                               _previewStore.peer!.name),
                                           style: GoogleFonts.inter(
-                                              fontSize: 36,
-                                              color:Colors.white,),
+                                            fontSize: 36,
+                                            color: Colors.white,
+                                          ),
                                         ))),
                               ),
                       ),
@@ -151,71 +164,72 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                   color: Colors.red,
                                 ),
                               ),
-                            if (_previewStore.peerCount != 0)
+                            if (_previewStore.peers.isNotEmpty)
                               GestureDetector(
                                   onTap: () {
-                                    if (_previewStore.peers.isNotEmpty)
-                                      showModalBottomSheet<void>(
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10.0),
-                                        ),
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return Container(
-                                              height: MediaQuery.of(context)
-                                                      .size
-                                                      .height /
-                                                  2,
-                                              padding: EdgeInsets.only(top: 15),
-                                              child: ListView.separated(
-                                                  itemBuilder:
-                                                      (context, index) {
-                                                    HMSPeer peer = _previewStore
-                                                        .peers[index];
-                                                    return Container(
-                                                      padding:
-                                                          EdgeInsets.all(15),
-                                                      margin:
-                                                          EdgeInsets.symmetric(
-                                                              horizontal: 10),
-                                                      decoration: BoxDecoration(
-                                                          color: Color.fromARGB(
-                                                              174, 0, 0, 0),
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(8)),
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .spaceBetween,
-                                                        children: [
-                                                          Text(
-                                                            peer.name,
-                                                            style: GoogleFonts.inter(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
-                                                                color:Colors.white,),
+                                    showModalBottomSheet<void>(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(10.0),
+                                      ),
+                                      context: context,
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                            height: MediaQuery.of(context)
+                                                    .size
+                                                    .height /
+                                                2,
+                                            padding: EdgeInsets.only(top: 15),
+                                            child: ListView.separated(
+                                                itemBuilder: (context, index) {
+                                                  HMSPeer peer = _previewStore
+                                                      .peers[index];
+                                                  return Container(
+                                                    padding: EdgeInsets.all(15),
+                                                    margin:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 10),
+                                                    decoration: BoxDecoration(
+                                                        color: Color.fromARGB(
+                                                            174, 0, 0, 0),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8)),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .spaceBetween,
+                                                      children: [
+                                                        Text(
+                                                          peer.name,
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            color: Colors.white,
                                                           ),
-                                                          Text(peer.role.name,
-                                                              style: GoogleFonts.inter(
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color:Colors.white,))
-                                                        ],
-                                                      ),
-                                                    );
-                                                  },
-                                                  separatorBuilder:
-                                                      (context, index) {
-                                                    return Divider();
-                                                  },
-                                                  itemCount: _previewStore
-                                                      .peers.length));
-                                        },
-                                      );
+                                                        ),
+                                                        Text(peer.role.name,
+                                                            style: GoogleFonts
+                                                                .inter(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color:
+                                                                  Colors.white,
+                                                            ))
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                                separatorBuilder:
+                                                    (context, index) {
+                                                  return Divider();
+                                                },
+                                                itemCount: _previewStore
+                                                    .peers.length));
+                                      },
+                                    );
                                   },
                                   child: Container(
                                       padding: EdgeInsets.all(5),
@@ -235,15 +249,16 @@ class _PreviewPageState extends State<PreviewPage> with WidgetsBindingObserver {
                                         children: [
                                           SvgPicture.asset(
                                             "assets/icons/participants.svg",
-                                            color:iconColor,
+                                            color: iconColor,
                                           ),
                                           SizedBox(
                                             width: 2,
                                           ),
                                           Text(
-                                            _previewStore.peerCount.toString(),
+                                            _previewStore.peers.length
+                                                .toString(),
                                             style: GoogleFonts.inter(
-                                              color:iconColor,
+                                                color: iconColor,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 16),
                                           )

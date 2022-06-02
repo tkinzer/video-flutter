@@ -1,12 +1,10 @@
 //package imports
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hmssdk_flutter_example/common/ui/organisms/audio_level_avatar.dart';
 import 'package:provider/provider.dart';
 
 //Package imports
-import 'package:hmssdk_flutter_example/common/util/utility_function.dart';
 import 'package:hmssdk_flutter_example/meeting/peer_track_node.dart';
 
 class DegradeTile extends StatefulWidget {
@@ -39,15 +37,15 @@ class _DegradeTileState extends State<DegradeTile> {
                 child: Stack(
                   children: [
                     Positioned(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(5, 5, 0, 0),
-                    child: SvgPicture.asset(
-                      'assets/icons/degrade.svg',
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(5, 5, 0, 0),
+                        child: SvgPicture.asset(
+                          'assets/icons/degrade.svg',
+                        ),
+                      ),
+                      top: 10.0,
+                      right: 5.0,
                     ),
-                  ),
-                  top: 10.0,
-                  right: 5.0,
-                ),
                     AudioLevelAvatar()
                   ],
                 ),
