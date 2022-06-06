@@ -742,8 +742,7 @@ class _MeetingPageState extends State<MeetingPage>
           ),
           if ((meetingStore.localPeer != null) &&
               meetingStore.localPeer!.role.publishSettings!.allowed
-                  .contains("screen") &&
-              Platform.isAndroid)
+                  .contains("screen"))
             PopupMenuItem(
               child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,

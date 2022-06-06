@@ -157,6 +157,9 @@ public class SwiftHmssdkFlutterPlugin: NSObject, FlutterPlugin, HMSUpdateListene
             
         case "start_stats_listener", "remove_stats_listener":
             statsListenerAction(call, result: result)
+        
+        case "start_screen_share","stop_screen_share","is_screen_share_active":
+            screenShareAction(call,result: result)
             
         default:
             result(FlutterMethodNotImplemented)
@@ -295,7 +298,7 @@ public class SwiftHmssdkFlutterPlugin: NSObject, FlutterPlugin, HMSUpdateListene
         }
         
         hmsSDK = HMSSDK.build { sdk in
-            
+//            sdk.appGroup = "group.live.100ms.flutter"
             if let settings = trackSettings {
                 sdk.trackSettings = settings
             }
@@ -603,6 +606,25 @@ public class SwiftHmssdkFlutterPlugin: NSObject, FlutterPlugin, HMSUpdateListene
         logLevel = .off
         hmsSDK?.logger = nil
     }
+    
+    //MARK: Screen share
+    private func screenShareAction(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        switch call.method {
+            
+        case "start_screen_share":
+            let broadcastURL = URL(string:"http://apple.com/broadcast/streamID")
+            let setupInfo: [String : NSCoding & NSObjectProtocol] = ["broadcastName": "example" as NSCoding & NSObjectProtocol]
+            
+        case "stop_screen_share":
+            let error = NSError(domain: "YouAppDomain", code: -1, userInfo: nil)
+            
+        case "is_screen_share_active":
+            break
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+       
     
     // MARK: - 100ms SDK Delegate Callbacks
     
