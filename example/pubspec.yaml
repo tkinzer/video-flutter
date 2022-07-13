@@ -40,6 +40,8 @@ dependencies:
   google_fonts:
   fluttertoast:
   qr_code_scanner:
+  shared_preferences: 
+  uni_links:
   
 dev_dependencies:
   flutter_test:

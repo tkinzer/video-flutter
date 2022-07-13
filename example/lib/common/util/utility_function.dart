@@ -6,9 +6,20 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hmssdk_flutter_example/common/constant.dart';
 import 'package:hmssdk_flutter_example/enum/meeting_flow.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Utilities {
+
+  static RegExp REGEX_EMOJI = RegExp(
+        r'(\u00a9|\u00ae|[\u2000-\u3300]|\ud83c[\ud000-\udfff]|\ud83d[\ud000-\udfff]|\ud83e[\ud000-\udfff])');
+
   static String getAvatarTitle(String name) {
+    if (name.contains(REGEX_EMOJI)) {
+      name = name.replaceAll(REGEX_EMOJI, '');
+      if (name.trim().isEmpty) {
+        return '😄';
+      }
+    }
     List<String>? parts = name.trim().split(" ");
     if (parts.length == 1) {
       name = parts[0][0];
@@ -24,6 +35,13 @@ class Utilities {
   }
 
   static Color getBackgroundColour(String name) {
+
+    if (name.contains(REGEX_EMOJI)) {
+      name = name.replaceAll(REGEX_EMOJI, '');
+      if (name.trim().isEmpty) {
+        return Color(0xFF6554C0);
+      }
+    }
     return Utilities
         .colors[name.toUpperCase().codeUnitAt(0) % Utilities.colors.length];
   }
@@ -43,6 +61,10 @@ class Utilities {
             viewPadding.bottom -
             kToolbarHeight) /
         (size.width - viewPadding.left - viewPadding.right);
+  }
+
+  static double getHLSRatio(Size size, BuildContext context) {
+    return (size.height) / (size.width);
   }
 
   static void setRTMPUrl(String roomUrl) {
@@ -88,7 +110,7 @@ class Utilities {
     final hlsFlowRegex = RegExp("\.100ms\.live\/hls-streaming\/");
 
     if (joinFlowRegex.hasMatch(roomUrl)) {
-      return MeetingFlow.join;
+      return MeetingFlow.meeting;
     } else if (hlsFlowRegex.hasMatch(roomUrl)) {
       return MeetingFlow.hlsStreaming;
     } else {
@@ -98,5 +120,30 @@ class Utilities {
 
   static void showToast(String message) {
     Fluttertoast.showToast(msg: message, backgroundColor: Colors.black87);
+  }
+
+  static Future<String> getStringData({required String key}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getString(key) ?? "";
+  }
+
+  static void saveStringData(
+      {required String key, required String value}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    prefs.setString(key, value);
+  }
+
+  static Future<int> getIntData({required String key}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    return prefs.getInt(key) ?? 0;
+  }
+
+  static void saveIntData({required String key, required int value}) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    prefs.setInt(key, value);
   }
 }

@@ -4,6 +4,7 @@ import 'package:focus_detector/focus_detector.dart';
 import 'package:hmssdk_flutter/hmssdk_flutter.dart';
 import 'package:hmssdk_flutter_example/common/ui/organisms/change_role_options.dart';
 import 'package:hmssdk_flutter_example/common/ui/organisms/local_peer_tile_dialog.dart';
+import 'package:hmssdk_flutter_example/common/util/app_color.dart';
 import 'package:hmssdk_flutter_example/common/util/utility_components.dart';
 import 'package:provider/provider.dart';
 
@@ -25,12 +26,13 @@ class VideoTile extends StatefulWidget {
   final double itemHeight;
   final double itemWidth;
   final ScaleType scaleType;
-
+  final bool islongPressEnabled;
   VideoTile(
       {Key? key,
       this.itemHeight = 200.0,
       this.itemWidth = 200.0,
-      this.scaleType = ScaleType.SCALE_ASPECT_FILL})
+      this.scaleType = ScaleType.SCALE_ASPECT_FILL,
+      this.islongPressEnabled = true})
       : super(key: key);
 
   @override
@@ -69,6 +71,9 @@ class _VideoTileState extends State<VideoTile> {
       child: context.read<PeerTrackNode>().uid.contains("mainVideo")
           ? InkWell(
               onLongPress: () {
+                if (!widget.islongPressEnabled) {
+                  return;
+                }
                 var peerTrackNode = context.read<PeerTrackNode>();
                 HMSPeer peerNode = peerTrackNode.peer;
                 if (!mutePermission ||
@@ -108,8 +113,8 @@ class _VideoTileState extends State<VideoTile> {
                                   context: context,
                                   builder: (_) => ChangeRoleOptionDialog(
                                         peerName: peerNode.name,
-                                        getRoleFunction:
-                                            _meetingStore.getRoles(),
+                                        roles: _meetingStore.roles,
+                                        peer: peerNode,
                                         changeRole: (role, forceChange) {
                                           Navigator.pop(context);
                                           _meetingStore.changeRole(
@@ -140,7 +145,8 @@ class _VideoTileState extends State<VideoTile> {
                                 context: context,
                                 builder: (_) => ChangeRoleOptionDialog(
                                       peerName: peerNode.name,
-                                      getRoleFunction: _meetingStore.getRoles(),
+                                      roles: _meetingStore.roles,
+                                      peer: peerNode,
                                       changeRole: (role, forceChange) {
                                         Navigator.pop(context);
                                         _meetingStore.changeRole(
@@ -162,12 +168,15 @@ class _VideoTileState extends State<VideoTile> {
                           }));
               },
               child: Container(
-                color: Colors.transparent,
                 key: key,
                 padding: EdgeInsets.all(2),
                 margin: EdgeInsets.all(2),
                 height: widget.itemHeight + 110,
                 width: widget.itemWidth - 5.0,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  color: bottomSheetColor,
+                ),
                 child: Stack(
                   children: [
                     VideoView(
@@ -181,11 +190,33 @@ class _VideoTileState extends State<VideoTile> {
                       itemHeight: widget.itemHeight,
                       itemWidth: widget.itemWidth,
                     ),
-                    PeerName(),
-                    HandRaise(), //bottom left
-                    BRBTag(), //top right
-                    NetworkIconWidget(), //top left
-                    AudioMuteStatus(), //bottom center
+                    Positioned(
+                      //Bottom left
+                      bottom: 5,
+                      left: 5,
+                      child: Container(
+                        decoration: BoxDecoration(
+                            color: Color.fromRGBO(0, 0, 0, 0.9),
+                            borderRadius: BorderRadius.circular(8)),
+                        child: Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                                left: 8.0, right: 4, top: 4, bottom: 4),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                PeerName(),
+                                NetworkIconWidget(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    HandRaise(), //top left
+                    BRBTag(), //bottom right
+                    AudioMuteStatus(), //top right
                     RTCStatsView(
                         isLocal: context.read<PeerTrackNode>().peer.isLocal),
                     TileBorder(
