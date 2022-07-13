@@ -40,7 +40,7 @@ jobs:
           
     - run: flutter pub get
     - run: pwd
-    - run: ls
+    - run: ls app
     - run: flutter build apk --release
     
     - uses: actions/upload-artifact@v2
